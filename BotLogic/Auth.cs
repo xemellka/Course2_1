@@ -42,7 +42,7 @@ public class SpotifyBot
             cancellationToken: cts.Token
         );
 
-
+ await Task.Delay(-1);
     }
 
     private static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
