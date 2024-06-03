@@ -1,1 +1,1 @@
-worker: dotnet bin\Debug\net6.0\Botlogic.dll
+worker: dotnet Auth.cs
