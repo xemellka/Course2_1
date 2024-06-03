@@ -1,1 +1,1 @@
-worker: dotnet Botlogic.dll
+worker: dotnet bin\Debug\net6.0\Botlogic.dll
