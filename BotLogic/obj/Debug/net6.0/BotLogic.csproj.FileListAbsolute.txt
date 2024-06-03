@@ -56,3 +56,4 @@ E:\DevLabs\BotLogic\obj\Debug\net6.0\BotLogic.pdb
 E:\DevLabs\BotLogic\obj\Debug\net6.0\BotLogic.genruntimeconfig.cache
 E:\DevLabs\BotLogic\obj\Debug\net6.0\ref\BotLogic.dll
 E:\DevLabs\BotLogic\obj\Debug\net6.0\BotLogic.csproj.Up2Date
+E:\DevLabs\BotLogic\bin\Debug\net6.0\Npgsql.dll

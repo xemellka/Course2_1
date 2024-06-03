@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Npgsql;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -26,9 +27,25 @@ public class SpotifyBot
     private static readonly Dictionary<long, bool> UserTrackSearchState = new Dictionary<long, bool>();
     private static readonly Dictionary<long, bool> UserTrackAddState = new Dictionary<long, bool>();
     private static readonly Dictionary<long, bool> UserTrackRemoveState = new Dictionary<long, bool>();
-
+    private static readonly string ConnectionString = "Host=ccaml3dimis7eh.cluster-czz5s0kz4scl.eu-west-1.rds.amazonaws.com;Port=5432;Username=u2evei8qu4hc5d;Password=p1d9df478626407792a5237964e33f1509d7a3b60ae635c0b37d252c505be38a2;Database=dbg1ssti2fllbi;";
     public static async Task Main()
     {
+
+        using (var connection = new NpgsqlConnection(ConnectionString))
+        {
+            connection.Open();
+            string createTableQuery = @"CREATE TABLE IF NOT EXISTS UserTokens (
+                                            ChatId BIGINT PRIMARY KEY,
+                                            AccessToken TEXT
+                                        );";
+            using (var command = new NpgsqlCommand(createTableQuery, connection))
+            {
+                command.ExecuteNonQuery();
+            }
+
+
+        }
+
         var cts = new CancellationTokenSource();
         var receiverOptions = new ReceiverOptions
         {
@@ -43,8 +60,7 @@ public class SpotifyBot
         );
 
         Console.WriteLine("Bot is working (maybe)");
-        Console.ReadKey();
-        cts.Cancel();
+        await Task.Delay(-1);
     }
 
     private static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -76,7 +92,9 @@ public class SpotifyBot
         }
         else if (messageText == "Username")
         {
-            if (UserTokens.TryGetValue(chatId, out var accessToken))
+            var accessToken = await TryGetAccessTokenAsync(chatId);
+
+            if (accessToken != null)
             {
                 var response = await HttpClient.GetAsync($"https://spokiapi-a6c792bd77b1.herokuapp.com/SpotifyAuth/me?accessToken={accessToken}");
 
@@ -96,6 +114,16 @@ public class SpotifyBot
                         replyMarkup: GetMainMenu()
                     );
                 }
+                else
+                {
+                    var errorString = await response.Content.ReadAsStringAsync();
+                    await botClient.SendTextMessageAsync(
+                        chatId: chatId,
+                        text: $"Failed to get user profile. Error: {errorString}",
+                        cancellationToken: cancellationToken,
+                        replyMarkup: GetMainMenu()
+                    );
+                }
             }
             else
             {
@@ -109,7 +137,9 @@ public class SpotifyBot
         }
         else if (messageText == "Createplaylist")
         {
-            if (UserTokens.TryGetValue(chatId, out var accessToken))
+            var accessToken = await TryGetAccessTokenAsync(chatId);
+
+            if (accessToken != null)
             {
                 UserAuthorizationState[chatId] = true;
 
@@ -132,7 +162,9 @@ public class SpotifyBot
         }
         else if (messageText == "Searchtrack")
         {
-            if (UserTokens.TryGetValue(chatId, out var accessToken))
+            var accessToken = await TryGetAccessTokenAsync(chatId);
+
+            if (accessToken != null)
             {
                 UserTrackSearchState[chatId] = true;
 
@@ -155,7 +187,9 @@ public class SpotifyBot
         }
         else if (messageText == "Nexttrack")
         {
-            if (UserTokens.TryGetValue(chatId, out var accessToken))
+            var accessToken = await TryGetAccessTokenAsync(chatId);
+
+            if (accessToken != null)
             {
                 var response = await HttpClient.PostAsync($"https://spokiapi-a6c792bd77b1.herokuapp.com/SpotifyAuth/nextTrack?accessToken={accessToken}", null);
 
@@ -181,7 +215,9 @@ public class SpotifyBot
         }
         else if (messageText == "Previoustrack")
         {
-            if (UserTokens.TryGetValue(chatId, out var accessToken))
+            var accessToken = await TryGetAccessTokenAsync(chatId);
+
+            if (accessToken != null)
             {
                 var response = await HttpClient.PostAsync($"https://spokiapi-a6c792bd77b1.herokuapp.com/SpotifyAuth/previousTrack?accessToken={accessToken}", null);
 
@@ -207,7 +243,9 @@ public class SpotifyBot
         }
         else if (messageText == "Pause")
         {
-            if (UserTokens.TryGetValue(chatId, out var accessToken))
+            var accessToken = await TryGetAccessTokenAsync(chatId);
+
+            if (accessToken != null)
             {
                 var response = await HttpClient.PutAsync($"https://spokiapi-a6c792bd77b1.herokuapp.com/SpotifyAuth/pause?accessToken={accessToken}", null);
 
@@ -221,7 +259,6 @@ public class SpotifyBot
                     );
                 }
             }
-
             else
             {
                 await botClient.SendTextMessageAsync(
@@ -234,7 +271,9 @@ public class SpotifyBot
         }
         else if (messageText == "Play")
         {
-            if (UserTokens.TryGetValue(chatId, out var accessToken))
+            var accessToken = await TryGetAccessTokenAsync(chatId);
+
+            if (accessToken != null)
             {
                 var response = await HttpClient.PutAsync($"https://spokiapi-a6c792bd77b1.herokuapp.com/SpotifyAuth/play?accessToken={accessToken}", null);
 
@@ -248,7 +287,6 @@ public class SpotifyBot
                     );
                 }
             }
-
             else
             {
                 await botClient.SendTextMessageAsync(
@@ -261,7 +299,9 @@ public class SpotifyBot
         }
         else if (messageText == "Addtrack")
         {
-            if (UserTokens.TryGetValue(chatId, out var accessToken) && UserPlaylists.TryGetValue(chatId, out var playlistId))
+            var accessToken = await TryGetAccessTokenAsync(chatId);
+
+            if (accessToken != null && UserPlaylists.TryGetValue(chatId, out var playlistId))
             {
                 UserTrackAddState[chatId] = true;
 
@@ -284,7 +324,9 @@ public class SpotifyBot
         }
         else if (messageText == "Removetrack")
         {
-            if (UserTokens.TryGetValue(chatId, out var accessToken) && UserPlaylists.TryGetValue(chatId, out var playlistId))
+            var accessToken = await TryGetAccessTokenAsync(chatId);
+
+            if (accessToken != null && UserPlaylists.TryGetValue(chatId, out var playlistId))
             {
                 UserTrackRemoveState[chatId] = true;
 
@@ -305,6 +347,8 @@ public class SpotifyBot
                 );
             }
         }
+
+
         else
         {
             if (UserAuthorizationState.TryGetValue(chatId, out var isAwaitingCode) && isAwaitingCode)
@@ -334,7 +378,9 @@ public class SpotifyBot
                                 IsPublic = isPublic.Value
                             };
 
-                            if (UserTokens.TryGetValue(chatId, out var accessToken))
+                            var accessToken = await TryGetAccessTokenAsync(chatId);
+
+                            if (accessToken != null)
                             {
                                 var userProfileResponse = await HttpClient.GetAsync($"https://spokiapi-a6c792bd77b1.herokuapp.com/SpotifyAuth/me?accessToken={accessToken}");
                                 if (userProfileResponse.IsSuccessStatusCode)
@@ -403,9 +449,9 @@ public class SpotifyBot
                     {
                         var responseString = await response.Content.ReadAsStringAsync();
                         dynamic responseObject = JObject.Parse(responseString);
-                        var accessToken = responseObject.access_token;
+                        var accessToken = (string)responseObject.access_token;
 
-                        UserTokens[chatId] = accessToken;
+                        await SaveUserTokenAsync(chatId, accessToken);
                         UserAuthorizationState[chatId] = false;
 
                         await botClient.SendTextMessageAsync(
@@ -430,7 +476,9 @@ public class SpotifyBot
             else if (UserTrackSearchState.TryGetValue(chatId, out var isAwaitingTrack) && isAwaitingTrack)
             {
                 var trackName = messageText.Trim();
-                if (UserTokens.TryGetValue(chatId, out var accessToken))
+                var accessToken = await TryGetAccessTokenAsync(chatId);
+
+                if (accessToken != null)
                 {
                     var response = await HttpClient.GetAsync($"https://spokiapi-a6c792bd77b1.herokuapp.com/SpotifyAuth/searchTrack?query={trackName}&accessToken={accessToken}");
                     if (response.IsSuccessStatusCode)
@@ -483,7 +531,9 @@ public class SpotifyBot
             else if (UserTrackAddState.TryGetValue(chatId, out var isAwaitingTrackId) && isAwaitingTrackId)
             {
                 var trackId = messageText.Trim();
-                if (UserTokens.TryGetValue(chatId, out var accessToken) && UserPlaylists.TryGetValue(chatId, out var playlistId))
+                var accessToken = await TryGetAccessTokenAsync(chatId);
+
+                if (accessToken != null && UserPlaylists.TryGetValue(chatId, out var playlistId))
                 {
                     var response = await AddTrackToPlaylist(playlistId, trackId, accessToken);
                     if (response.IsSuccessStatusCode)
@@ -510,7 +560,9 @@ public class SpotifyBot
             else if (UserTrackRemoveState.TryGetValue(chatId, out var isAwaitingTrackRemoveId) && isAwaitingTrackRemoveId)
             {
                 var trackId = messageText.Trim();
-                if (UserTokens.TryGetValue(chatId, out var accessToken) && UserPlaylists.TryGetValue(chatId, out var playlistId))
+                var accessToken = await TryGetAccessTokenAsync(chatId);
+
+                if (accessToken != null && UserPlaylists.TryGetValue(chatId, out var playlistId))
                 {
                     var response = await RemoveTrackFromPlaylist(playlistId, trackId, accessToken);
                     if (response.IsSuccessStatusCode)
@@ -535,6 +587,7 @@ public class SpotifyBot
                 UserTrackRemoveState[chatId] = false;
             }
         }
+
     }
     public static IReplyMarkup GetMainMenu()
     {
@@ -605,6 +658,43 @@ public class SpotifyBot
 
         Console.WriteLine(errorMessage);
         return Task.CompletedTask;
+    }
+    private static async Task SaveUserTokenAsync(long chatId, string accessToken)
+    {
+        using (var connection = new NpgsqlConnection(ConnectionString))
+        {
+            connection.Open();
+            string insertQuery = @"INSERT INTO UserTokens (ChatId, AccessToken) 
+                                   VALUES (@ChatId, @AccessToken)
+                                   ON CONFLICT (ChatId) DO UPDATE 
+                                   SET AccessToken = EXCLUDED.AccessToken;";
+            using (var command = new NpgsqlCommand(insertQuery, connection))
+            {
+                command.Parameters.AddWithValue("@ChatId", chatId);
+                command.Parameters.AddWithValue("@AccessToken", accessToken);
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+    }
+
+    private static async Task<string> GetUserTokenAsync(long chatId)
+    {
+        using (var connection = new NpgsqlConnection(ConnectionString))
+        {
+            connection.Open();
+            string selectQuery = @"SELECT AccessToken FROM UserTokens WHERE ChatId = @ChatId;";
+            using (var command = new NpgsqlCommand(selectQuery, connection))
+            {
+                command.Parameters.AddWithValue("@ChatId", chatId);
+                var result = await command.ExecuteScalarAsync();
+                return result?.ToString();
+            }
+        }
+    }
+
+    private static async Task<string> TryGetAccessTokenAsync(long chatId)
+    {
+        return await GetUserTokenAsync(chatId);
     }
     public class PlaylistInfo
     {
