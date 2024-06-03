@@ -30,9 +30,9 @@
               "Title": "Auth.cs",
               "DocumentMoniker": "E:\\DevLabs\\BotLogic\\Auth.cs",
               "RelativeDocumentMoniker": "Auth.cs",
-              "ToolTip": "E:\\DevLabs\\BotLogic\\Auth.cs",
-              "RelativeToolTip": "Auth.cs",
-              "ViewState": "AQIAAE8CAAAAAAAAAAAmwEwCAABDAAAA",
+              "ToolTip": "E:\\DevLabs\\BotLogic\\Auth.cs*",
+              "RelativeToolTip": "Auth.cs*",
+              "ViewState": "AQIAAB0AAAAAAAAAAAAjwC0AAAAIAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-05-21T18:34:57.003Z",
               "EditorCaption": ""
@@ -47,7 +47,8 @@
               "RelativeToolTip": "Program.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAA4AAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-05-21T16:17:22.786Z"
+              "WhenOpened": "2024-05-21T16:17:22.786Z",
+              "EditorCaption": ""
             }
           ]
         }
