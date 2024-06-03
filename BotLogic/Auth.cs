@@ -42,9 +42,7 @@ public class SpotifyBot
             cancellationToken: cts.Token
         );
 
-        Console.WriteLine("Bot is working (maybe)");
-        Console.ReadKey();
-        cts.Cancel();
+
     }
 
     private static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
