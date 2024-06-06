@@ -17,7 +17,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 public class SpotifyBot
 {
-    private static readonly string TelegramBotToken = "7166757164:AAFHVOd-0kxhzKle2eOgljwdaYUXP_Hkf1Y";
+    private static readonly string TelegramBotToken = "";
     private static readonly string Endpoint = "https://spokiapi-a6c792bd77b1.herokuapp.com/SpotifyAuth";
     private static readonly HttpClient HttpClient = new HttpClient();
     private static readonly TelegramBotClient Bot = new TelegramBotClient(TelegramBotToken);
@@ -27,7 +27,7 @@ public class SpotifyBot
     private static readonly Dictionary<long, bool> UserTrackSearchState = new Dictionary<long, bool>();
     private static readonly Dictionary<long, bool> UserTrackAddState = new Dictionary<long, bool>();
     private static readonly Dictionary<long, bool> UserTrackRemoveState = new Dictionary<long, bool>();
-    private static readonly string ConnectionString = "Host=ccaml3dimis7eh.cluster-czz5s0kz4scl.eu-west-1.rds.amazonaws.com;Port=5432;Username=u2evei8qu4hc5d;Password=p1d9df478626407792a5237964e33f1509d7a3b60ae635c0b37d252c505be38a2;Database=dbg1ssti2fllbi;";
+    private static readonly string ConnectionString = "";
     public static async Task Main()
     {
 
